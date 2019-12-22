@@ -6,7 +6,6 @@ import com.enfor.myapp.carcrashmap.domain.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,36 +21,7 @@ public class UserDto {
     private String locale;
     private Status status;
     private LocalDateTime lastVisit;
-    private RoleDto roles;
-
-    private static class RoleDto {
-        private List<String> roles;
-
-        static RoleDto fromUserRoles(User user) {
-            return new RoleDto(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
-        }
-
-        List<Role> toRole() {
-            List<Role> roles = new ArrayList<>();
-            this.roles.forEach(role -> roles.add(new Role(role)));
-            return roles;
-        }
-
-        public RoleDto() {
-        }
-
-        public RoleDto(List<String> roles) {
-            this.roles = roles;
-        }
-
-        public List<String> getRoles() {
-            return roles;
-        }
-
-        public void setRoles(List<String> roles) {
-            this.roles = roles;
-        }
-    }
+    private List<String> roles;
 
     public User toUser(){
         User user = new User();
@@ -65,7 +35,7 @@ public class UserDto {
         user.setLocale(locale);
         user.setStatus(status);
         user.setLastVisit(lastVisit);
-        user.setRoles(roles.toRole());
+        user.setRoles(roles.stream().map(Role::new).collect(Collectors.toList()));
         return user;
     }
 
@@ -81,7 +51,7 @@ public class UserDto {
         userDto.setLocale(user.getLocale());
         userDto.setStatus(user.getStatus());
         userDto.setLastVisit(user.getLastVisit());
-        userDto.setRoles(RoleDto.fromUserRoles(user));
+        userDto.setRoles(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
         return userDto;
     }
 
@@ -168,11 +138,11 @@ public class UserDto {
         this.lastVisit = lastVisit;
     }
 
-    public RoleDto getRoles() {
+    public List<String> getRoles() {
         return roles;
     }
 
-    public void setRoles(RoleDto roles) {
+    public void setRoles(List<String> roles) {
         this.roles = roles;
     }
 }
