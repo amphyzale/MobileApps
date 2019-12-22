@@ -20,6 +20,13 @@ public class TypeOfRoadObj {
     @OneToMany(mappedBy = "typeOfRoadObj", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Message> typeOfRoadObj;
 
+    public TypeOfRoadObj() {
+    }
+
+    public TypeOfRoadObj(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

@@ -46,6 +46,7 @@ public class MessageDto {
         message.setCar2(car2.toCar());
         message.setStreet1(new Street(street1));
         message.setStreet2(new Street(street2));
+        message.setTypeOfRoadObj(new TypeOfRoadObj(typeOfRoadObj));
         message.setImages(images.stream().map(Images::new).collect(Collectors.toSet()));
         message.setComments(comments.stream().map(Comments::new).collect(Collectors.toSet()));
         message.setAuthor(author.toUser());
@@ -67,6 +68,7 @@ public class MessageDto {
         messageDto.setCar2(CarDto.fromCar(message.getCar2()));
         messageDto.setStreet1(message.getStreet1().getName());
         messageDto.setStreet2(message.getStreet2().getName());
+        messageDto.setTypeOfRoadObj(message.getTypeOfRoadObj().getName());
         messageDto.setImages(message.getImages().stream().map(Images::getPath).collect(Collectors.toSet()));
         messageDto.setImages(message.getComments().stream().map(Comments::getText).collect(Collectors.toSet()));
         messageDto.setAuthor(UserDto.fromUser(message.getAuthor()));
