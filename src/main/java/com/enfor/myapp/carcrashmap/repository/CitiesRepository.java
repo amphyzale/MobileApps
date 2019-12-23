@@ -13,4 +13,6 @@ public interface CitiesRepository extends CrudRepository<City, Long> {
     Set<City> findCitiesByRegionId(Long id);
 
     Set<City> findAll();
+
+    City findByName(String name);
 }

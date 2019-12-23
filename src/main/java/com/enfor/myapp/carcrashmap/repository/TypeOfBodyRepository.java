@@ -11,4 +11,6 @@ public interface TypeOfBodyRepository extends Repository<TypeOfBody, Long> {
     TypeOfBody findById(Long id);
 
     Long findIdByName(String name);
+
+    TypeOfBody findByName(String name);
 }

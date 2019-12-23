@@ -1,17 +1,24 @@
 
 package com.enfor.myapp.carcrashmap.controller;
 
+import com.enfor.myapp.carcrashmap.domain.Comments;
 import com.enfor.myapp.carcrashmap.domain.Message;
+import com.enfor.myapp.carcrashmap.domain.Status;
 import com.enfor.myapp.carcrashmap.dto.MessageDto;
 import com.enfor.myapp.carcrashmap.dto.UserDto;
+import com.enfor.myapp.carcrashmap.repository.CommentsRepository;
 import com.enfor.myapp.carcrashmap.repository.MessageRepository;
-import org.springframework.beans.BeanUtils;
+import com.enfor.myapp.carcrashmap.repository.MessageStatusesRepository;
+import com.enfor.myapp.carcrashmap.service.MessageService;
+import com.enfor.myapp.carcrashmap.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,20 +27,25 @@ import java.util.stream.Collectors;
 public class MessageController {
 
     private final MessageRepository messageRepository;
+    private final MessageService messageService;
+    private final CommentsRepository commentsRepository;
+    private final UserService userService;
+    private final MessageStatusesRepository messageStatusesRepository;
 
     @Autowired
-    public MessageController(MessageRepository messageRepository) {
+    public MessageController(MessageRepository messageRepository, MessageService messageService, CommentsRepository commentsRepository, UserService userService, MessageStatusesRepository messageStatusesRepository) {
         this.messageRepository = messageRepository;
+        this.messageService = messageService;
+        this.commentsRepository = commentsRepository;
+        this.userService = userService;
+        this.messageStatusesRepository = messageStatusesRepository;
     }
 
 
     @GetMapping
     public ResponseEntity<List<MessageDto>> list() {
-        List<MessageDto> result  = messageRepository.findAll()
-                .stream()
-                .map(MessageDto::fromMessage)
-                .collect(Collectors.toList());
 
+        List<MessageDto> result = messageService.getAllMessages();
         return result.size() != 0 ? new ResponseEntity<>(result, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
@@ -43,22 +55,58 @@ public class MessageController {
         return result.getId() != null ? new ResponseEntity<>(result, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping
-    public Message create(@RequestBody MessageDto message) {
-        message.setCreated(LocalDateTime.now());
-        return messageRepository.save(message.toMessage());
+    @PostMapping("create/")
+    @PreAuthorize("hasAnyAuthority(\"ADMIN\", \"MODERATOR\", \"USER\")")
+    public ResponseEntity<MessageDto> create(@RequestBody MessageDto messageDto, @AuthenticationPrincipal Principal principal) {
+        UserDto userDto = UserDto.fromUser(userService.findByName(principal.getName()));
+        messageDto.setAuthor(userDto);
+        messageDto = MessageDto.fromMessage(messageService.createMessage(messageDto));
+        return messageDto.getId() != null ? new ResponseEntity<>(messageDto, HttpStatus.CREATED) : new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("{id}")
-    public Message update(@PathVariable("id") Message messageFromDb,
+    @PutMapping("update/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR', 'USER')")
+    public ResponseEntity<MessageDto> update(@PathVariable("id") Message messageFromDb,
                           @RequestBody Message message) {
-        BeanUtils.copyProperties(message, messageFromDb, "id");
-        return messageRepository.save(messageFromDb);
+        MessageDto result = MessageDto.fromMessage(messageService.updateMessage(messageFromDb, message));
+        return result.getId() != null ? new ResponseEntity<>(result, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("{id}")
-    public void delete(@PathVariable("id") Message message) {
-        messageRepository.delete(message);
+    @DeleteMapping("delete/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR', 'USER')")
+    public ResponseEntity delete(@PathVariable("id") Long id) {
+        Message message = messageRepository.getOne(id);
+        message.setStatus(Status.DELETED);
+        messageRepository.save(message);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @RequestMapping("addComment/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR', 'USER')")
+    public ResponseEntity<MessageDto> addComment(@PathVariable("id") Long id,
+                                                 @RequestParam("text") String text,
+                                                 @AuthenticationPrincipal Principal principal) {
+        Message message = messageRepository.findById(id).get();
+        Comments comments = new Comments(message, text, userService.findByName(principal.getName()));
+        commentsRepository.save(comments);
+        message.getComments().add(comments);
+        messageRepository.save(message);
+        return new ResponseEntity<>(MessageDto.fromMessage(message), HttpStatus.OK);
+    }
+
+    @RequestMapping("removeComment/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR', 'USER')")
+    public ResponseEntity<MessageDto> removeComment(@PathVariable("id") Comments comments) {
+        commentsRepository.delete(comments);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping("approveMessage/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
+    public ResponseEntity<MessageDto> approveMessage(@PathVariable("id") Message message) {
+        message.setMessageStatus(messageStatusesRepository.findById(3L));
+        messageRepository.save(message);
+        return new ResponseEntity<>(MessageDto.fromMessage(message), HttpStatus.OK);
     }
 
 }

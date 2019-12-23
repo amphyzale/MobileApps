@@ -19,11 +19,17 @@ public class Comments extends BaseEntity {
     @JoinColumn(name = "message_id")
     private Message message;
 
-    public Comments() {
-    }
-
     public Comments(String text) {
         this.text = text;
+    }
+
+    public Comments(Message message, String text, User user) {
+        this.message = message;
+        this.text = text;
+        this.author = user;
+    }
+
+    public Comments() {
     }
 
     public Long getId() {

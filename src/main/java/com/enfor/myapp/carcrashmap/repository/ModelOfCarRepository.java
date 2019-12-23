@@ -12,4 +12,6 @@ public interface ModelOfCarRepository extends Repository<ModelOfCar, Long> {
 
     ModelOfCar findById(Long id);
 
+    ModelOfCar findByName(String name);
+
 }

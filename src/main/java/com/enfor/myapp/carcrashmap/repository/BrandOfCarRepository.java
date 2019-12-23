@@ -9,4 +9,5 @@ public interface BrandOfCarRepository extends Repository<BrandOfCar, Long> {
     Set<BrandOfCar> findAll();
 
     BrandOfCar findById(Long id);
+    BrandOfCar findByName(String name);
 }

@@ -70,7 +70,7 @@ public class MessageDto {
         messageDto.setStreet2(message.getStreet2().getName());
         messageDto.setTypeOfRoadObj(message.getTypeOfRoadObj().getName());
         messageDto.setImages(message.getImages().stream().map(Images::getPath).collect(Collectors.toSet()));
-        messageDto.setImages(message.getComments().stream().map(Comments::getText).collect(Collectors.toSet()));
+        messageDto.setComments(message.getComments().stream().map(Comments::getText).collect(Collectors.toSet()));
         messageDto.setAuthor(UserDto.fromUser(message.getAuthor()));
         return messageDto;
     }

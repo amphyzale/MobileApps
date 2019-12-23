@@ -13,7 +13,7 @@ public class GuestDto {
     private String email;
     private String gender;
     private String locale;
-    @JsonIgnore
+    //@JsonIgnore
     private String password;
 
     public User toUser(){
@@ -98,12 +98,12 @@ public class GuestDto {
         this.locale = locale;
     }
 
-    @JsonIgnore
+    //@JsonIgnore
     public String getPassword() {
         return password;
     }
 
-    @JsonIgnore
+    //@JsonIgnore
     public void setPassword(String password) {
         this.password = password;
     }

@@ -13,4 +13,6 @@ public interface StreetsRepository extends CrudRepository<Street, Long> {
     Future<Set<Street>> findAllByCity(City city);
 
     Set<Street> findAll();
+
+    Street findByName(String name);
 }

@@ -7,4 +7,5 @@ import java.util.Set;
 
 public interface RegionsRepository extends CrudRepository<Region, Long> {
     Set<Region> findAll();
+    Region findByName(String name);
 }

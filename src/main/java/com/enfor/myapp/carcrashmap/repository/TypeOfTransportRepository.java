@@ -11,4 +11,6 @@ public interface TypeOfTransportRepository extends Repository<TypeOfTransport, L
     TypeOfTransport findById(Long id);
 
     Long findIdByName(String name);
+
+    TypeOfTransport findByName(String name);
 }
